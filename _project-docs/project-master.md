@@ -73,5 +73,13 @@ git push
 - [ ] Photo upload implemented
 - [ ] Video calling integrated
 - [ ] Pain and mood tracking saved to database
+## Session 3 Complete
+- [x] Supabase project created
+- [x] Medications table created
+- [x] Patient app connected to Supabase
+- [x] Env variables configured
+- [ ] Family app connected to Supabase
+- [ ] Data persisting and syncing
 
+## Next: Session 4 — Add photo upload and video calls
 
