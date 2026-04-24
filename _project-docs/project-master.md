@@ -46,3 +46,32 @@ Built by an Occupational Therapist.
 ## Builder
 Occupational Therapist, Filipino, non-programmer.
 Claude codes, builder directs.
+## Session 1 Complete
+- [x] All tools installed
+- [x] All accounts created
+- [x] Project folder created
+- [x] GitHub repository created
+- [x] Project backed up to GitHub
+
+## Next: Session 2 — Build the app
+Start date: [DATE]
+## Session 2 — Build Patient App
+- [x] Expo project created
+- [x] App running in browser
+- [ ] Patient app screens built
+- [ ] Medications tab complete
+- [ ] Wellness tab complete
+- [ ] Backend connected to Supabase
+git add .
+git commit -m "session 2 started"
+git push
+## Session 2 Complete
+- [x] Patient app UI built (Medications, Wellness, Schedule)
+- [x] Family app UI built (Manage Meds, Schedule, Dashboard, Contacts)
+- [x] Both apps running and functional
+- [ ] Backend database (Supabase) connected
+- [ ] Photo upload implemented
+- [ ] Video calling integrated
+- [ ] Pain and mood tracking saved to database
+
+
