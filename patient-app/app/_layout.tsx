@@ -1,9 +1,35 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { Tabs } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function Layout() {
   const [tab, setTab] = useState('meds');
+  const [medications, setMedications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMedications();
+  }, []);
+
+  const fetchMedications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('medications')
+        .select('*')
+        .eq('patient_id', 'dorothy-001');
+      
+      if (error) throw error;
+      setMedications(data || []);
+    } catch (err) {
+      console.log('Error fetching medications:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -34,7 +60,7 @@ export default function Layout() {
       </View>
 
       <ScrollView style={styles.content}>
-        {tab === 'meds' && <MedicationsTab />}
+        {tab === 'meds' && <MedicationsTab medications={medications} loading={loading} />}
         {tab === 'wellness' && <WellnessTab />}
         {tab === 'schedule' && <ScheduleTab />}
       </ScrollView>
@@ -42,54 +68,50 @@ export default function Layout() {
   );
 }
 
-function MedicationsTab() {
+function MedicationsTab({ medications, loading }) {
+  if (loading) {
+    return <Text style={styles.pageTitle}>Loading medications...</Text>;
+  }
+
+  if (medications.length === 0) {
+    return (
+      <View>
+        <Text style={styles.pageTitle}>My Medications</Text>
+        <Text style={styles.pageSubtitle}>No medications yet</Text>
+      </View>
+    );
+  }
+
   return (
     <View>
       <Text style={styles.pageTitle}>My Medications</Text>
-      <Text style={styles.pageSubtitle}>3 medications today</Text>
+      <Text style={styles.pageSubtitle}>{medications.length} medications</Text>
       
-      <MedicationCard 
-        name="Lisinopril 10mg"
-        dose="1 tablet with water"
-        time="8:00 AM"
-        color="#E6F1FB"
-        sideEffect="Dry cough, dizziness when standing"
-        taken={true}
-      />
-      <MedicationCard 
-        name="Metformin 500mg"
-        dose="1 tablet with lunch"
-        time="12:00 PM"
-        color="#FAEEDA"
-        sideEffect="Upset stomach — take with food"
-        taken={false}
-      />
-      <MedicationCard 
-        name="Vitamin D 1000 IU"
-        dose="1 softgel with dinner"
-        time="6:00 PM"
-        color="#E1F5EE"
-        sideEffect="None known"
-        taken={false}
-      />
+      {medications.map((med, i) => (
+        <MedicationCard 
+          key={i}
+          name={med.name}
+          dose={med.dose}
+          time={med.time}
+          sideEffect={med.side_effects}
+        />
+      ))}
     </View>
   );
 }
 
-function MedicationCard({ name, dose, time, color, sideEffect, taken }) {
+function MedicationCard({ name, dose, time, sideEffect }) {
   return (
-    <View style={[styles.medCard, { borderColor: color }]}>
-      <View style={[styles.medPhoto, { backgroundColor: color }]}>
+    <View style={styles.medCard}>
+      <View style={styles.medPhoto}>
         <Text style={styles.medPhotoText}>💊</Text>
       </View>
       <View style={styles.medInfo}>
         <Text style={styles.medName}>{name}</Text>
         <Text style={styles.medDose}>{dose}</Text>
         <Text style={styles.medTime}>{time}</Text>
-        <TouchableOpacity style={[styles.takeBtn, taken && styles.takenBtn]}>
-          <Text style={[styles.takeBtnText, taken && styles.takenBtnText]}>
-            {taken ? '✓ Taken' : 'I took this'}
-          </Text>
+        <TouchableOpacity style={styles.takeBtn}>
+          <Text style={styles.takeBtnText}>I took this medication</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.sideEffectStrip}>
@@ -225,6 +247,7 @@ const styles = StyleSheet.create({
   },
   medCard: {
     borderWidth: 0.5,
+    borderColor: '#ddd',
     borderRadius: 12,
     marginBottom: 14,
     overflow: 'hidden',
@@ -232,6 +255,7 @@ const styles = StyleSheet.create({
   },
   medPhoto: {
     height: 160,
+    backgroundColor: '#E6F1FB',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -263,16 +287,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  takenBtn: {
-    backgroundColor: '#EAF3DE',
-  },
   takeBtnText: {
     fontSize: 16,
     fontWeight: '500',
     color: '#185FA5',
-  },
-  takenBtnText: {
-    color: '#27500A',
   },
   sideEffectStrip: {
     backgroundColor: '#FAEEDA',
