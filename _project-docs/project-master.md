@@ -81,5 +81,11 @@ git push
 - [ ] Family app connected to Supabase
 - [ ] Data persisting and syncing
 
-## Next: Session 4 — Add photo upload and video calls
+## Session 4 Complete
+- [x] Photo upload for medications added
+- [x] Video call tab added with contact list
+- [x] Emergency 911 button added
+- [x] Patient app now has all 4 tabs working
+
+## Next: Session 5 — Connect family app to Supabase
 
