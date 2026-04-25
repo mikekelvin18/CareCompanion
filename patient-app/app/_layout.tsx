@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { createClient } from '@supabase/supabase-js';
+import * as ImagePicker from 'expo-image-picker';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY;
@@ -57,12 +58,19 @@ export default function Layout() {
         >
           <Text style={[styles.tabText, tab === 'schedule' && styles.tabTextActive]}>Schedule</Text>
         </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.tab, tab === 'call' && styles.tabActive]}
+          onPress={() => setTab('call')}
+        >
+          <Text style={[styles.tabText, tab === 'call' && styles.tabTextActive]}>Call</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
         {tab === 'meds' && <MedicationsTab medications={medications} loading={loading} />}
         {tab === 'wellness' && <WellnessTab />}
         {tab === 'schedule' && <ScheduleTab />}
+        {tab === 'call' && <CallTab />}
       </ScrollView>
     </View>
   );
@@ -86,7 +94,6 @@ function MedicationsTab({ medications, loading }) {
     <View>
       <Text style={styles.pageTitle}>My Medications</Text>
       <Text style={styles.pageSubtitle}>{medications.length} medications</Text>
-      
       {medications.map((med, i) => (
         <MedicationCard 
           key={i}
@@ -101,11 +108,30 @@ function MedicationsTab({ medications, loading }) {
 }
 
 function MedicationCard({ name, dose, time, sideEffect }) {
+  const [photoUri, setPhotoUri] = useState(null);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
+
   return (
     <View style={styles.medCard}>
-      <View style={styles.medPhoto}>
-        <Text style={styles.medPhotoText}>💊</Text>
-      </View>
+      <TouchableOpacity style={styles.medPhoto} onPress={pickImage}>
+        {photoUri ? (
+          <Image source={{ uri: photoUri }} style={{ width: '100%', height: '100%' }} />
+        ) : (
+          <Text style={styles.medPhotoText}>📷</Text>
+        )}
+      </TouchableOpacity>
       <View style={styles.medInfo}>
         <Text style={styles.medName}>{name}</Text>
         <Text style={styles.medDose}>{dose}</Text>
@@ -129,11 +155,9 @@ function WellnessTab() {
   return (
     <View>
       <Text style={styles.pageTitle}>How are you feeling?</Text>
-      
       <View style={styles.voiceBanner}>
         <Text style={styles.voiceText}>🔊 How are you feeling today, Dorothy?</Text>
       </View>
-
       <Text style={styles.sectionLabel}>Mood</Text>
       <View style={styles.moodGrid}>
         {['😄', '🙂', '😐', '😔', '😰'].map((emoji, i) => (
@@ -146,7 +170,6 @@ function WellnessTab() {
           </TouchableOpacity>
         ))}
       </View>
-
       <Text style={styles.sectionLabel}>Pain Level</Text>
       <View style={styles.painGrid}>
         {['0–1', '2–3', '4–5', '6–7', '8–10'].map((label, i) => (
@@ -180,6 +203,48 @@ function ScheduleItem({ time, task, done, urgent }) {
       <Text style={styles.schedTime}>{time}</Text>
       <Text style={[styles.schedTask, done && styles.schedTaskDone]}>{task}</Text>
       {done && <Text style={styles.schedDone}>✓ Done</Text>}
+    </View>
+  );
+}
+
+function CallTab() {
+  return (
+    <View>
+      <Text style={styles.pageTitle}>Call Family</Text>
+      <Text style={styles.pageSubtitle}>Video or phone call</Text>
+
+      <View style={styles.contactCard}>
+        <View style={styles.contactAvatar}>
+          <Text style={styles.contactAvatarText}>SA</Text>
+        </View>
+        <View style={styles.contactDetails}>
+          <Text style={styles.contactName}>Sarah</Text>
+          <Text style={styles.contactRole}>Daughter</Text>
+        </View>
+        <TouchableOpacity style={styles.callButton}>
+          <Text style={styles.callButtonText}>📞</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.contactCard}>
+        <View style={styles.contactAvatar}>
+          <Text style={styles.contactAvatarText}>DR</Text>
+        </View>
+        <View style={styles.contactDetails}>
+          <Text style={styles.contactName}>Dr. Reyes</Text>
+          <Text style={styles.contactRole}>Doctor</Text>
+        </View>
+        <TouchableOpacity style={styles.callButton}>
+          <Text style={styles.callButtonText}>📞</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.emergencyCard}>
+        <Text style={styles.emergencyText}>Emergency</Text>
+        <TouchableOpacity style={styles.emergencyButton}>
+          <Text style={styles.emergencyButtonText}>Call 911</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -402,5 +467,76 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#27500A',
     fontWeight: '500',
+  },
+  contactCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  contactAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E6F1FB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  contactAvatarText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#185FA5',
+  },
+  contactDetails: {
+    flex: 1,
+  },
+  contactName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  contactRole: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
+  },
+  callButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E6F1FB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  callButtonText: {
+    fontSize: 20,
+  },
+  emergencyCard: {
+    backgroundColor: '#FCEBEB',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 16,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E24B4A',
+  },
+  emergencyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#A32D2D',
+    marginBottom: 8,
+  },
+  emergencyButton: {
+    backgroundColor: '#E24B4A',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  emergencyButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
 });
