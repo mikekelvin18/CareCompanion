@@ -87,5 +87,17 @@ git push
 - [x] Emergency 911 button added
 - [x] Patient app now has all 4 tabs working
 
-## Next: Session 5 — Connect family app to Supabase
+## Session 5 Complete
+- [x] Family app connected to Supabase
+- [x] Environment variables configured
+- [ ] Medication editing fully functional
+- [ ] Data syncing between apps
+
+## Current Status
+- Patient app: 4 tabs, photo upload, video calls ✓
+- Family app: Basic structure, Supabase connected ✓
+- Database: Medications table created ✓
+- Backup: All code on GitHub ✓
+
+## Next: Session 6 — Full medication management sync
 
