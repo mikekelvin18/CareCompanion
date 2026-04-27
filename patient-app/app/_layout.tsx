@@ -7,6 +7,7 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+
 export default function Layout() {
   const [tab, setTab] = useState('meds');
   const [medications, setMedications] = useState([]);
@@ -16,12 +17,15 @@ export default function Layout() {
     fetchMedications();
   }, []);
 
-  const fetchMedications = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('medications')
-        .select('*')
-        .eq('patient_id', 'dorothy-001');
+ const fetchMedications = async () => {
+  try {
+    console.log('Fetching medications...');
+    const { data, error } = await supabase
+      .from('medications')
+      .select('*')
+      .eq('patient_id', 'dorothy-001');
+    
+    console.log('Supabase response:', { data, error });
       
       if (error) throw error;
       setMedications(data || []);
@@ -540,3 +544,4 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
+
