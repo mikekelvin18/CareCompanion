@@ -7,30 +7,27 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-
 export default function Layout() {
   const [tab, setTab] = useState('meds');
   const [medications, setMedications] = useState([]);
+  const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMedications();
+    fetchData();
   }, []);
 
- const fetchMedications = async () => {
-  try {
-    console.log('Fetching medications...');
-    const { data, error } = await supabase
-      .from('medications')
-      .select('*')
-      .eq('patient_id', 'dorothy-001');
-    
-    console.log('Supabase response:', { data, error });
-      
-      if (error) throw error;
-      setMedications(data || []);
+  const fetchData = async () => {
+    try {
+      const [medsResult, schedsResult] = await Promise.all([
+        supabase.from('medications').select('*').eq('patient_id', 'dorothy-001'),
+        supabase.from('schedules').select('*').eq('patient_id', 'dorothy-001'),
+      ]);
+
+      setMedications(medsResult.data || []);
+      setSchedules(schedsResult.data || []);
     } catch (err) {
-      console.log('Error fetching medications:', err.message);
+      console.log('Error fetching data:', err.message);
     } finally {
       setLoading(false);
     }
@@ -73,7 +70,7 @@ export default function Layout() {
       <ScrollView style={styles.content}>
         {tab === 'meds' && <MedicationsTab medications={medications} loading={loading} />}
         {tab === 'wellness' && <WellnessTab />}
-        {tab === 'schedule' && <ScheduleTab />}
+        {tab === 'schedule' && <ScheduleTab schedules={schedules} />}
         {tab === 'call' && <CallTab />}
       </ScrollView>
     </View>
@@ -190,23 +187,26 @@ function WellnessTab() {
   );
 }
 
-function ScheduleTab() {
+function ScheduleTab({ schedules }) {
+  if (schedules.length === 0) {
+    return (
+      <View>
+        <Text style={styles.pageTitle}>Today's Schedule</Text>
+        <Text style={styles.pageSubtitle}>No schedules</Text>
+      </View>
+    );
+  }
+
   return (
     <View>
       <Text style={styles.pageTitle}>Today's Schedule</Text>
-      <ScheduleItem time="8:00 AM" task="Morning medications" done={true} />
-      <ScheduleItem time="10:00 AM" task="Chair yoga exercises" done={false} />
-      <ScheduleItem time="4:00 PM" task="Dr. Reyes appointment" done={false} urgent={true} />
-    </View>
-  );
-}
-
-function ScheduleItem({ time, task, done, urgent }) {
-  return (
-    <View style={[styles.schedItem, urgent && styles.schedItemUrgent]}>
-      <Text style={styles.schedTime}>{time}</Text>
-      <Text style={[styles.schedTask, done && styles.schedTaskDone]}>{task}</Text>
-      {done && <Text style={styles.schedDone}>✓ Done</Text>}
+      {schedules.map((sched, i) => (
+        <View key={i} style={[styles.schedItem, sched.type === 'appointment' && styles.schedItemUrgent]}>
+          <Text style={styles.schedTime}>{sched.time}</Text>
+          <Text style={styles.schedTask}>{sched.title}</Text>
+          <Text style={styles.schedDone}>{sched.type}</Text>
+        </View>
+      ))}
     </View>
   );
 }
@@ -463,10 +463,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  schedTaskDone: {
-    color: '#999',
-    textDecorationLine: 'line-through',
-  },
   schedDone: {
     fontSize: 13,
     color: '#27500A',
@@ -544,4 +540,3 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
-
