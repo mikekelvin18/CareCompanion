@@ -11,6 +11,7 @@ export default function Layout() {
   const [tab, setTab] = useState('meds');
   const [medications, setMedications] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,13 +20,15 @@ export default function Layout() {
 
   const fetchData = async () => {
     try {
-      const [medsResult, schedsResult] = await Promise.all([
+      const [medsResult, schedsResult, exResult] = await Promise.all([
         supabase.from('medications').select('*').eq('patient_id', 'dorothy-001'),
         supabase.from('schedules').select('*').eq('patient_id', 'dorothy-001'),
+        supabase.from('exercises').select('*').eq('patient_id', 'dorothy-001'),
       ]);
 
       setMedications(medsResult.data || []);
       setSchedules(schedsResult.data || []);
+      setExercises(exResult.data || []);
     } catch (err) {
       console.log('Error fetching data:', err.message);
     } finally {
@@ -60,6 +63,12 @@ export default function Layout() {
           <Text style={[styles.tabText, tab === 'schedule' && styles.tabTextActive]}>Schedule</Text>
         </TouchableOpacity>
         <TouchableOpacity 
+          style={[styles.tab, tab === 'exercise' && styles.tabActive]}
+          onPress={() => setTab('exercise')}
+        >
+          <Text style={[styles.tabText, tab === 'exercise' && styles.tabTextActive]}>Exercise</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
           style={[styles.tab, tab === 'call' && styles.tabActive]}
           onPress={() => setTab('call')}
         >
@@ -71,6 +80,7 @@ export default function Layout() {
         {tab === 'meds' && <MedicationsTab medications={medications} loading={loading} />}
         {tab === 'wellness' && <WellnessTab />}
         {tab === 'schedule' && <ScheduleTab schedules={schedules} />}
+        {tab === 'exercise' && <ExerciseTab exercises={exercises} />}
         {tab === 'call' && <CallTab />}
       </ScrollView>
     </View>
@@ -205,6 +215,30 @@ function ScheduleTab({ schedules }) {
           <Text style={styles.schedTime}>{sched.time}</Text>
           <Text style={styles.schedTask}>{sched.title}</Text>
           <Text style={styles.schedDone}>{sched.type}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function ExerciseTab({ exercises }) {
+  if (exercises.length === 0) {
+    return (
+      <View>
+        <Text style={styles.pageTitle}>Home Exercise Program</Text>
+        <Text style={styles.pageSubtitle}>No exercises scheduled</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <Text style={styles.pageTitle}>Home Exercise Program</Text>
+      {exercises.map((ex, i) => (
+        <View key={i} style={styles.exerciseCard}>
+          <Text style={styles.exerciseName}>{ex.name}</Text>
+          <Text style={styles.exerciseDesc}>{ex.description}</Text>
+          <Text style={styles.exerciseMeta}>{ex.duration} · {ex.frequency}</Text>
         </View>
       ))}
     </View>
@@ -467,6 +501,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#27500A',
     fontWeight: '500',
+  },
+  exerciseCard: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  exerciseName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  exerciseDesc: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 8,
+  },
+  exerciseMeta: {
+    fontSize: 12,
+    color: '#999',
   },
   contactCard: {
     flexDirection: 'row',
